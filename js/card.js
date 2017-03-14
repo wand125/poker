@@ -152,8 +152,8 @@ class HandChecker {
     }
     else {
       // カードの強さで比較
-      if (left.rankEvaluateOrder === right.rankEvaluateOrder) {return 0;}
-      else {return left.rankEvaluateOrder.findIndex((e, i) => left.rankEvaluateOrder < right.rankEvaluateOrder[i] >= 0) ? -1 : 1;}
+      let diffIndex = left.rankEvaluateOrder.findIndex((e, i) => e != right.rankEvaluateOrder[i]);
+      return diffIndex < 0 ? 0 : left.rankEvaluateOrder[diffIndex] - right.rankEvaluateOrder[diffIndex];
     } 
   }
 }
@@ -235,14 +235,16 @@ class Poker {
       this.players.push(player);
     }
 
-    let bestPlayer = __(this.players.map((player) => ({e: player, comp: player.hand.bestHandChecker}))
-      .sort((a,b) => -HandChecker.compare(a.comp, b.comp)))
-      .first().e;
+    let winners = this.players.map((player) => ({e: player, comp: player.hand.bestHandChecker}))
+      .sort((a,b) => -HandChecker.compare(a.comp, b.comp))
+      .filter((e,i,arr) => HandChecker.compare(e.comp, arr[0].comp) === 0)
+      .map((_) => _.e);
+    winners.forEach((player) => player.isWin = true);
 
     console.log(this.communities.map(card => card.toString()).join(' '));
     console.log();
     this.players.forEach(player => {
-      console.log("Player"+player.id+":" + (player.id === bestPlayer.id ? ' [WIN]' : ''));
+      console.log("Player"+player.id+":" + (player.isWin ? ' [WIN]' : ''));
       console.log(player.holds.map(card => card.toString()).join(' '));
       console.log(player.hand.bestHandName);
       console.log();
